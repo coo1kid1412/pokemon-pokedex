@@ -883,6 +883,73 @@ def serve_tts(pokemon_id):
         return response
     abort(404)
 
+# ============ 拼音转换 API ============
+@app.route('/api/chinese_to_pinyin')
+def chinese_to_pinyin():
+    """中文转拼音"""
+    try:
+        from pypinyin import lazy_pinyin, Style
+        import re
+        
+        text = request.args.get('text', '')
+        if not text:
+            return jsonify({'pinyin': ''})
+        
+        # 清理文本，只保留中文字符
+        clean_text = re.sub(r'[^\u4e00-\u9fa5]', '', text)
+        
+        if not clean_text:
+            return jsonify({'pinyin': ''})
+        
+        # 转换为不带声调的拼音
+        py = lazy_pinyin(clean_text, style=Style.NORMAL)
+        pinyin = ''.join(py)
+        
+        return jsonify({'pinyin': pinyin})
+    except Exception as e:
+        return jsonify({'pinyin': '', 'error': str(e)})
+
+@app.route('/api/check_pinyin', methods=['POST'])
+def check_pinyin():
+    """检查用户输入是否正确（使用拼音匹配）"""
+    try:
+        from pypinyin import lazy_pinyin, Style
+        import re
+        
+        data = request.get_json()
+        user_text = data.get('text', '')
+        pokemon_id = data.get('pokemon_id')
+        
+        if not user_text or not pokemon_id:
+            return jsonify({'correct': False, 'reason': '参数不完整'})
+        
+        # 获取宝可梦的中文名
+        pokemon_name = POKEMON_NAMES_CN.get(str(pokemon_id), '')
+        if not pokemon_name:
+            return jsonify({'correct': False, 'reason': '宝可梦不存在'})
+        
+        # 转换为拼音
+        user_clean = re.sub(r'[^\u4e00-\u9fa5]', '', user_text)
+        pokemon_clean = re.sub(r'[^\u4e00-\u9fa5]', '', pokemon_name)
+        
+        user_pinyin = ''.join(lazy_pinyin(user_clean, style=Style.NORMAL))
+        pokemon_pinyin = ''.join(lazy_pinyin(pokemon_clean, style=Style.NORMAL))
+        
+        # 模糊匹配
+        is_correct = (user_pinyin in pokemon_pinyin or 
+                      pokemon_pinyin in user_pinyin or
+                      user_pinyin == pokemon_pinyin)
+        
+        return jsonify({
+            'correct': is_correct,
+            'user_text': user_text,
+            'pokemon_name': pokemon_name,
+            'user_pinyin': user_pinyin,
+            'pokemon_pinyin': pokemon_pinyin
+        })
+    except Exception as e:
+        return jsonify({'correct': False, 'reason': str(e)})
+
 @app.route('/api/random-stage2')
 def random_stage2_pokemon():
     """获取随机二跳页宝可梦（大师赛用）"""

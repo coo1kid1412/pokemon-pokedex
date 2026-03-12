@@ -288,6 +288,35 @@
             text-align: center;
         }
         
+        .manual-input-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        
+        .manual-input-container input {
+            flex: 1;
+            max-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #FFD700;
+            border-radius: 25px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        .manual-input-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #FFD700;
+            color: #1a1a2e;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
         .voice-record-btn {
             width: 120px;
             height: 120px;
@@ -1372,6 +1401,11 @@
                     <div class="result-text"></div>
                     <div class="result-hint"></div>
                 </div>
+                <!-- 手动输入备用方案 -->
+                <div class="manual-input-container" id="manualInputContainer">
+                    <input type="text" id="manualInput" placeholder="或手动输入名称" />
+                    <button onclick="submitManualInput()">确认</button>
+                </div>
             </div>
             {% else %}
             <!-- 播放叫声按钮 -->
@@ -2027,6 +2061,33 @@
             clearTimeout(recordingTimer);
             isRecording = false;
         }
+        
+        // 手动输入提交
+        function submitManualInput() {
+            var input = document.getElementById('manualInput');
+            var text = input.value.trim();
+            
+            if (!text) {
+                alert('请输入宝可梦名称');
+                return;
+            }
+            
+            // 使用拼音匹配验证
+            checkRecognitionResult(text);
+            input.value = '';
+        }
+        
+        // 手动输入框回车提交
+        document.addEventListener('DOMContentLoaded', function() {
+            var manualInput = document.getElementById('manualInput');
+            if (manualInput) {
+                manualInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitManualInput();
+                    }
+                });
+            }
+        });
         
         // 检查识别结果
         function checkRecognitionResult(text) {
