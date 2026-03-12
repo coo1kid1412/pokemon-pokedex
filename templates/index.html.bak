@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宝可梦图鉴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 开启动画遮罩 */
+        .pokedex-intro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .pokedex-intro.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        /* 精灵球旋转动画 */
+        .pokeball-spin {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            animation: spin 2s ease-in-out infinite;
+        }
+        
+        .pokeball-spin::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, #ff1744, #ff5252);
+            border-radius: 100px 100px 0 0;
+            border: 8px solid #1a1a2e;
+        }
+        
+        .pokeball-spin::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: white;
+            border-radius: 0 0 100px 100px;
+            border: 8px solid #1a1a2e;
+        }
+        
+        .pokeball-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border: 8px solid #1a1a2e;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .pokeball-center::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 25px;
+            background: white;
+            border: 6px solid #1a1a2e;
+            border-radius: 50%;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg) scale(0.5); opacity: 0; }
+            20% { transform: rotate(360deg) scale(1); opacity: 1; }
+            80% { transform: rotate(720deg) scale(1); opacity: 1; }
+            100% { transform: rotate(1080deg) scale(1.2); opacity: 0; }
+        }
+        
+        /* 闪电效果 */
+        .lightning {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 100px;
+            color: #ffd700;
+            animation: flash 0.3s ease-in-out infinite;
+            display: none;
+        }
+        
+        .lightning.active {
+            display: block;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+        
+        /* 文字动画 */
+        .intro-text {
+            position: absolute;
+            bottom: 15%;
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700, 0 0 40px #ff6b6b;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            opacity: 0;
+            animation: textAppear 1s ease-in-out 1.5s forwards;
+        }
+        
+        @keyframes textAppear {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 光束效果 */
+        .light-beam {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: beam 1s ease-in-out infinite;
+            display: none;
+        }
+        
+        .light-beam.active {
+            display: block;
+        }
+        
+        @keyframes beam {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(30); opacity: 0; }
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        body.visible {
+            opacity: 1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        }
+        
+        /* 宝可梦大师赛徽章 - 锦标赛风格 */
+        .master-badge {
+            position: fixed !important;
+            top: 15px !important;
+            right: 15px !important;
+            left: auto !important;
+            z-index: 9999 !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        /* 移动端适配 - 手机端尺寸 */
+        @media (max-width: 480px) {
+            .master-badge {
+                top: 10px !important;
+                right: 10px !important;
+            }
+            
+            .master-icon {
+                font-size: 2.5em;
+            }
+            
+            .ribbon-main {
+                font-size: 0.8em;
+                padding: 6px 15px;
+            }
+            
+            .master-subtext {
+                font-size: 0.6em;
+                margin-top: 8px;
+            }
+        }
+        
+        /* PC端适配 - 更大尺寸 */
+        @media (min-width: 768px) {
+            .master-badge {
+                top: 25px !important;
+                right: 25px !important;
+            }
+            
+            .master-icon {
+                font-size: 4em;
+            }
+            
+            .ribbon-main {
+                font-size: 1.1em;
+                padding: 10px 28px;
+            }
+            
+            .master-subtext {
+                font-size: 0.75em;
+                margin-top: 12px;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .master-badge {
+                top: 30px !important;
+                right: 30px !important;
+            }
+            
+            .master-icon {
+                font-size: 4.5em;
+            }
+            
+            .ribbon-main {
+                font-size: 1.2em;
+                padding: 12px 35px;
+            }
+        }
+        
+        .master-badge:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 锦标赛奖杯图标 */
+        .master-icon {
+            font-size: 3em;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            animation: masterFloat 2s ease-in-out infinite;
+            z-index: 2;
+        }
+        
+        @keyframes masterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* 红飘带 - 大师赛 */
+        .master-ribbon {
+            position: relative;
+            margin-top: -15px;
+            z-index: 1;
+        }
+        
+        .ribbon-main {
+            background: linear-gradient(135deg, #dc143c 0%, #b22222 50%, #8b0000 100%);
+            color: white;
+            font-size: 0.9em;
+            font-weight: 900;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+            animation: ribbonWave 3s ease-in-out infinite;
+        }
+        
+        @keyframes ribbonWave {
+            0%, 100% { transform: skewX(-5deg) scaleX(1); }
+            50% { transform: skewX(-5deg) scaleX(1.02); }
+        }
+        
+        /* 飘带尾巴 */
+        .ribbon-tail {
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 15px solid #b22222;
+            filter: drop-shadow(2px 0 3px rgba(0,0,0,0.3));
+        }
+        
+        .ribbon-main::before,
+        .ribbon-main::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 10px solid #8b0000;
+        }
+        
+        .ribbon-main::before {
+            left: 8px;
+        }
+        
+        .ribbon-main::after {
+            right: 8px;
+        }
+        
+        .master-subtext {
+            font-size: 0.6em;
+            color: #ffd700;
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 3px;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            text-shadow: 3px 3px 0 #fff, -1px -1px 0 #ff6b6b;
+            margin-bottom: 10px;
+            animation: titleBounce 0.5s ease-out 2.3s both;
+        }
+        
+        @keyframes titleBounce {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            animation: fadeIn 0.5s ease-out 2.5s both;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 童趣搜索框样式 */
+        .cute-search-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px auto 20px;
+            position: relative;
+        }
+        
+        .cute-search-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-box {
+            position: relative;
+            width: 280px;
+            height: 50px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            height: 100%;
+            padding: 10px 50px 10px 25px;
+            font-size: 1.1em;
+            border: 4px solid #667eea;
+            border-radius: 50px;
+            outline: none;
+            background: white;
+            color: #333;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .search-box input::placeholder {
+            color: #999;
+        }
+        
+        .search-box input:focus {
+            width: 320px;
+            border-color: #ff6b6b;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4), 0 0 0 4px rgba(255, 107, 107, 0.2);
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.1) rotate(10deg);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .search-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        .clear-search-btn {
+            position: absolute;
+            right: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-search-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: #ff4757;
+        }
+        
+        .search-results-tip {
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.95em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            animation: popIn 0.3s ease-out;
+        }
+        
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            animation: gridFadeIn 0.5s ease-out 2.6s both;
+        }
+        
+        @keyframes gridFadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pokemon-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 4px solid transparent;
+            text-decoration: none;
+            display: block;
+            animation: cardPop 0.3s ease-out backwards;
+        }
+        
+        .pokemon-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #ffd700;
+        }
+        
+        @keyframes cardPop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pokemon-number {
+            font-size: 0.9em;
+            color: #999;
+            font-weight: bold;
+        }
+        
+        .pokemon-image {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+            image-rendering: pixelated;
+            transition: transform 0.3s ease;
+        }
+        
+        .pokemon-card:hover .pokemon-image {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .pokemon-name {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .pokemon-cn-name {
+            font-size: 0.9em;
+            color: #e74c3c;
+            margin-top: 3px;
+        }
+        
+        .type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+        
+        /* 类型筛选导航条 */
+        .type-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        
+        .type-filter-btn {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .type-filter-btn:hover {
+            transform: scale(1.05);
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+        .type-filter-btn.active {
+            border-color: #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .type-filter-btn.all {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+            border-radius: 15px;
+            font-size: 0.75em;
+            color: white;
+            margin: 3px 1px;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 20px;
+            animation: gridFadeIn 0.5s ease-out 2.7s both;
+        }
+        
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .pagination a:hover {
+            background: #ffd700;
+            color: #fff;
+            transform: scale(1.1);
+        }
+        
+        .pagination .current {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+        }
+        
+        .page-info {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            animation: gridFadeIn 0.5s ease-out 2.8s both;
+        }
+        
+        /* 响应式布局 */
+        @media (max-width: 900px) {
+            .pokemon-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .pokemon-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .pokeball-spin {
+                width: 150px;
+                height: 150px;
+            }
+            .pokeball-center {
+                width: 45px;
+                height: 45px;
+            }
+        }
+        
+        /* 装饰元素 */
+        .pokeball-decor {
+            position: fixed;
+            font-size: 3em;
+            opacity: 0.3;
+            z-index: -1;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .pokeball-decor.top-right {
+            top: 20px;
+            right: 20px;
+        }
+        
+        .pokeball-decor.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            animation-delay: 1.5s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 开关动画遮罩 -->
+    <div class="pokedex-intro" id="pokedexIntro">
+        <div class="light-beam" style="top: 30%; left: 20%;"></div>
+        <div class="light-beam" style="top: 40%; left: 80%; animation-delay: 0.2s;"></div>
+        <div class="light-beam" style="top: 60%; left: 30%; animation-delay: 0.4s;"></div>
+        <div class="light-beam" style="top: 70%; left: 70%; animation-delay: 0.6s;"></div>
+        
+        <div class="lightning" id="lightning">⚡</div>
+        
+        <div class="pokeball-spin">
+            <div class="pokeball-center"></div>
+        </div>
+        
+        <div class="intro-text">POKÉDEX</div>
+    </div>
+    
+    <script>
+        // 开启动画控制
+        document.addEventListener('DOMContentLoaded', function() {
+            const intro = document.getElementById('pokedexIntro');
+            const body = document.body;
+            const lightning = document.getElementById('lightning');
+            const lightBeams = document.querySelectorAll('.light-beam');
+            
+            // 3秒后开始消失动画
+            setTimeout(function() {
+                // 闪电效果
+                lightning.classList.add('active');
+                lightBeams.forEach(function(beam) {
+                    beam.classList.add('active');
+                });
+            }, 800);
+            
+            // 3.5秒后完全隐藏动画遮罩
+            setTimeout(function() {
+                intro.classList.add('hidden');
+                body.classList.add('visible');
+            }, 3200);
+            
+            // 播放音效（可选）
+            try {
+                // 创建简单的提示音
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 点击页面任意位置可以重新播放开启动画
+                document.addEventListener('click', function replayIntro() {
+                    intro.classList.remove('hidden');
+                    body.classList.remove('visible');
+                    lightning.classList.remove('active');
+                    lightBeams.forEach(function(beam) {
+                        beam.classList.remove('active');
+                    });
+                    
+                    setTimeout(function() {
+                        lightning.classList.add('active');
+                        lightBeams.forEach(function(beam) {
+                            beam.classList.add('active');
+                        });
+                    }, 800);
+                    
+                    setTimeout(function() {
+                        intro.classList.add('hidden');
+                        body.classList.add('visible');
+                    }, 3200);
+                }, { once: true });
+            } catch(e) {
+                console.log('Audio not supported');
+            }
+        });
+    </script>
+    
+    <script>
+        // 大师赛功能 - 随机展示二跳页宝可梦
+        document.addEventListener('DOMContentLoaded', function() {
+            const masterBadge = document.querySelector('.master-badge');
+            if (masterBadge) {
+                masterBadge.addEventListener('click', function() {
+                    // 显示加载提示
+                    masterBadge.innerHTML = '<div class="master-icon">🔄</div><div class="master-ribbon"><div class="ribbon-main">匹配中...</div></div>';
+                    
+                    // 获取随机二跳页宝可梦
+                    fetch('/api/random-stage2')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.pokemon_id) {
+                                // 跳转到详情页，使用 master 模式
+                                window.location.href = '/pokemon/' + data.pokemon_id + '?master=true';
+                            } else {
+                                alert('获取宝可梦失败，请重试');
+                                // 恢复徽章
+                                masterBadge.innerHTML = '<div class="master-icon">🏆</div><div class="master-ribbon"><div class="ribbon-main">大师赛</div></div><div class="master-subtext">CHAMPIONSHIP</div>';
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            alert('网络错误，请重试');
+                            masterBadge.innerHTML = '<div class="master-icon">🏆</div><div class="master-ribbon"><div class="ribbon-main">大师赛</div></div><div class="master-subtext">CHAMPIONSHIP</div>';
+                        });
+                });
+            }
+        });
+    </script>
+    
+    <div class="pokeball-decor top-right">⚽</div>
+    <div class="pokeball-decor bottom-left">⚽</div>
+    
+    <!-- 宝可梦大师赛徽章控件 -->
+    <div class="master-badge" title="宝可梦大师赛">
+        <div class="master-icon">🏆</div>
+        <div class="master-ribbon">
+            <div class="ribbon-main">
+                大师赛
+            </div>
+        </div>
+        <div class="master-subtext">CHAMPIONSHIP</div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>🎮 宝可梦图鉴</h1>
+            <p class="subtitle">点击宝可梦查看详情</p>
+        </header>
+        
+        <!-- 童趣搜索框 -->
+        <div class="cute-search-wrapper">
+            <form action="/" method="get" class="cute-search-form">
+                {% if filter_type %}<input type="hidden" name="type" value="{{ filter_type }}">{% endif %}
+                <div class="search-box">
+                    <input type="text" 
+                           name="q" 
+                           id="searchInput"
+                           placeholder="🔍 找只小精灵..." 
+                           value="{{ search_query or '' }}"
+                           autocomplete="off">
+                    <button type="submit" class="search-btn">✨</button>
+                </div>
+                {% if search_query %}
+                <a href="/" class="clear-search-btn">✕</a>
+                {% endif %}
+            </form>
+            {% if search_results_count is not none %}
+            <div class="search-results-tip">
+                找到 {{ search_results_count }} 只小精灵！
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- 类型筛选导航 -->
+        <div class="type-filter-bar">
+            <a href="/" class="type-filter-btn all {% if not filter_type %}active{% endif %}">全部</a>
+            <a href="/?type=fire" class="type-filter-btn {% if filter_type == 'fire' %}active{% endif %}" style="background-color: #F08030;">火</a>
+            <a href="/?type=water" class="type-filter-btn {% if filter_type == 'water' %}active{% endif %}" style="background-color: #6890F0;">水</a>
+            <a href="/?type=electric" class="type-filter-btn {% if filter_type == 'electric' %}active{% endif %}" style="background-color: #F8D030; color: #333;">电</a>
+            <a href="/?type=grass" class="type-filter-btn {% if filter_type == 'grass' %}active{% endif %}" style="background-color: #78C850;">草</a>
+            <a href="/?type=psychic" class="type-filter-btn {% if filter_type == 'psychic' %}active{% endif %}" style="background-color: #F85888;">超能</a>
+            <a href="/?type=dragon" class="type-filter-btn {% if filter_type == 'dragon' %}active{% endif %}" style="background-color: #7038F8;">龙</a>
+            <a href="/?type=ghost" class="type-filter-btn {% if filter_type == 'ghost' %}active{% endif %}" style="background-color: #705898;">幽灵</a>
+        </div>
+        
+        <div class="pokemon-grid">
+            {% for pokemon in pokemons %}
+            <a href="/pokemon/{{ pokemon.id }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.02 + 2.6 }}s">
+                <div class="pokemon-number">#{{ "%03d"|format(pokemon.id) }}</div>
+                <img src="{{ pokemon.sprite_url }}" alt="{{ pokemon.name }}" class="pokemon-image">
+                <div class="pokemon-name">{{ pokemon.name }}</div>
+                <div class="pokemon-cn-name">{{ pokemon.cn_name or '' }}</div>
+                <div class="types">
+                    {% for type in pokemon.types %}
+                    <span class="type-badge" style="background-color: {{ type_colors[type] }}">{{ type_names[type] }}</span>
+                    {% endfor %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="/?page={{ page - 1 }}">⬅️ 上一页</a>
+            {% endif %}
+            
+            <span class="current">第 {{ page }} / {{ total_pages }} 页</span>
+            
+            {% if page < total_pages %}
+            <a href="/?page={{ page + 1 }}">下一页 ➡️</a>
+            {% endif %}
+        </div>
+        
+        <div class="page-info">
+            共 {{ total_pokemon }} 只宝可梦
+        </div>
+    </div>
+</body>
+</html>
