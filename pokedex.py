@@ -767,14 +767,19 @@ def detail(pokemon_id):
     p = pokemons[str(pokemon_id)]
     
     # 获取用户来源页面，用于返回时保留筛选状态
+    # 优先从 URL 参数获取，其次从 referer 获取
+    from_page = request.args.get('from_page', '1')
+    from_type = request.args.get('from_type', '')
+
+    # 如果 URL 没有参数，则从 referer 尝试获取（兼容旧方式）
     referer = request.headers.get('Referer', '')
-    back_filter = ''
-    if 'type=' in referer:
-        # 从 referer 中提取筛选参数
+    if not from_type and 'type=' in referer:
         import re
         match = re.search(r'type=([^&]+)', referer)
         if match:
-            back_filter = match.group(1)
+            from_type = match.group(1)
+
+    back_filter = from_type
     
     # 计算上一个和下一个宝可梦ID
     sorted_ids = PokemonDataCache.get_sorted_ids()
@@ -849,6 +854,7 @@ def detail(pokemon_id):
                            type_colors=TYPE_COLORS,
                            type_names=TYPE_NAMES_CN,
                            back_filter=back_filter,
+                           from_page=from_page,
                            primary_color=primary_color,
                            primary_type=primary_type,
                            prev_info=prev_info,

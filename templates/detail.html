@@ -1335,7 +1335,7 @@
             </div>
             {% endif %}
             
-            <a href="{% if back_filter %}/?type={{ back_filter }}{% else %}/{% endif %}" class="back-link">⬅️ 返回图鉴</a>
+            <a href="/?page={{ from_page }}{% if back_filter %}&type={{ back_filter }}{% endif %}" class="back-link">⬅️ 返回图鉴</a>
             
             {% if next_info %}
             <a href="/pokemon/{{ next_info.id }}" class="nav-arrow nav-next" title="{{ next_info.cn_name }}">

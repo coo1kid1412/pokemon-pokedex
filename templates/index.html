@@ -1096,7 +1096,7 @@
         
         <div class="pokemon-grid">
             {% for pokemon in pokemons %}
-            <a href="/pokemon/{{ pokemon.id }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.02 + 2.6 }}s">
+            <a href="/pokemon/{{ pokemon.id }}?from_page={{ page }}&from_type={{ filter_type or '' }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.02 + 2.6 }}s">
                 <div class="pokemon-number">#{{ "%03d"|format(pokemon.id) }}</div>
                 <img src="{{ pokemon.sprite_url }}" alt="{{ pokemon.name }}" class="pokemon-image">
                 <div class="pokemon-name">{{ pokemon.name }}</div>
