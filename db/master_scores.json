@@ -1,5 +1,5 @@
 {
-  "total_success": 46,
+  "total_success": 51,
   "records": [
     {
       "timestamp": "2026-03-08T22:59:03.293006",
@@ -276,6 +276,36 @@
       "pokemon_id": 114,
       "pokemon_name": "蔓藤怪",
       "success": true
+    },
+    {
+      "timestamp": "2026-03-14T21:53:50.827236",
+      "pokemon_id": 112,
+      "pokemon_name": "钻角犀兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-14T21:54:19.136563",
+      "pokemon_id": 106,
+      "pokemon_name": "飞腿郎",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-14T21:54:56.650045",
+      "pokemon_id": 89,
+      "pokemon_name": "臭臭泥",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-14T21:55:02.758115",
+      "pokemon_id": 77,
+      "pokemon_name": "小火马",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-14T23:10:21.607122",
+      "pokemon_id": 65,
+      "pokemon_name": "胡地",
+      "success": true
     }
   ],
   "daily_records": {
@@ -290,6 +320,10 @@
     "2026-03-10": {
       "success": 28,
       "total": 28
+    },
+    "2026-03-14": {
+      "success": 5,
+      "total": 5
     }
   }
 }

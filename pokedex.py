@@ -883,6 +883,11 @@ def serve_tts(pokemon_id):
         return response
     abort(404)
 
+@app.route('/static/tts/<path:filename>')
+def serve_tts_static(filename):
+    """提供TTS静态文件服务（如背景音乐等）"""
+    return send_from_directory(TTS_DIR, filename)
+
 # ============ 拼音转换 API ============
 @app.route('/api/chinese_to_pinyin')
 def chinese_to_pinyin():
@@ -908,6 +913,22 @@ def chinese_to_pinyin():
         return jsonify({'pinyin': pinyin})
     except Exception as e:
         return jsonify({'pinyin': '', 'error': str(e)})
+
+@app.route('/api/pokemon_names_pinyin')
+def pokemon_names_pinyin():
+    """获取所有宝可梦名称的拼音"""
+    try:
+        from pypinyin import lazy_pinyin, Style
+        from pokemon_names_cn_full import POKEMON_NAMES_CN
+
+        result = {}
+        for pokemon_id, chinese_name in POKEMON_NAMES_CN.items():
+            py = lazy_pinyin(chinese_name, style=Style.NORMAL)
+            result[pokemon_id] = ''.join(py)
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @app.route('/api/check_pinyin', methods=['POST'])
 def check_pinyin():
@@ -982,6 +1003,106 @@ def random_stage2_with_exclude():
     random_id = random.choice(available_ids)
     return jsonify({'pokemon_id': random_id})
 
+# ============ 大师赛榜单 API ============
+MASTER_SCORES_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_scores.json'
+
+def load_master_scores():
+    """加载榜单数据"""
+    try:
+        with open(MASTER_SCORES_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"加载榜单失败: {e}")
+        return {'total_success': 0, 'records': [], 'daily_records': {}}
+
+def save_master_scores(data):
+    """保存榜单数据"""
+    try:
+        with open(MASTER_SCORES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"保存榜单失败: {e}")
+
+def get_level(total):
+    """根据成功次数计算等级"""
+    if total >= 100:
+        return "🏆 大师"
+    elif total >= 50:
+        return "⭐ 钻石"
+    elif total >= 30:
+        return "💎 铂金"
+    elif total >= 20:
+        return "🥇 金牌"
+    elif total >= 10:
+        return "🥈 银牌"
+    elif total >= 5:
+        return "🥉 铜牌"
+    else:
+        return "🌱 新手"
+
+@app.route('/api/master-scores')
+def get_master_scores():
+    """获取榜单数据"""
+    data = load_master_scores()
+    
+    # 获取今日数据
+    from datetime import datetime
+    today = datetime.now().strftime('%Y-%m-%d')
+    today_data = data.get('daily_records', {}).get(today, {'success': 0, 'total': 0})
+    
+    return jsonify({
+        'total_success': data.get('total_success', 0),
+        'today_success': today_data.get('success', 0),
+        'today_total': today_data.get('total', 0),
+        'level': get_level(data.get('total_success', 0)),
+        'records': data.get('records', [])[-20:]
+    })
+
+@app.route('/api/master-scores/record', methods=['POST'])
+def record_master_score():
+    """记录成绩"""
+    data = load_master_scores()
+    request_data = request.get_json()
+    
+    pokemon_id = request_data.get('pokemon_id')
+    pokemon_name = request_data.get('pokemon_name')
+    success = request_data.get('success', True)
+    
+    from datetime import datetime
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # 更新总数
+    if success:
+        data['total_success'] = data.get('total_success', 0) + 1
+    
+    # 更新每日记录
+    if 'daily_records' not in data:
+        data['daily_records'] = {}
+    
+    if today not in data['daily_records']:
+        data['daily_records'][today] = {'success': 0, 'total': 0}
+    
+    data['daily_records'][today]['total'] = data['daily_records'][today].get('total', 0) + 1
+    if success:
+        data['daily_records'][today]['success'] = data['daily_records'][today].get('success', 0) + 1
+    
+    # 添加记录
+    record = {
+        'timestamp': datetime.now().isoformat(),
+        'pokemon_id': pokemon_id,
+        'pokemon_name': pokemon_name,
+        'success': success
+    }
+    
+    if 'records' not in data:
+        data['records'] = []
+    
+    data['records'].append(record)
+    
+    # 保存
+    save_master_scores(data)
+    
+    return jsonify({'success': True, 'total_success': data['total_success']})
 
 
 # ============ 启动 ============
