@@ -236,17 +236,17 @@
             font-size: 18px;
         }
         
-        /* 探索新区域按钮 */
+        /* 探索新区域按钮 - 放大并放到右侧 */
         .explore-btn {
-            padding: 12px 20px;
+            padding: 16px 28px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 25px;
-            font-size: 14px;
+            border-radius: 30px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: auto;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             transition: all 0.3s ease;
         }
@@ -1565,6 +1565,27 @@
         
         // 已经被浏览过的二跳页ID集合（用于去重）
         var viewedPokemonIds = [];
+        
+        // 使用事件监听器绑定大师赛按钮点击（更可靠）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 大师赛下一个按钮
+            var masterNextBtn = document.querySelector('.master-next-btn:not(.kid-style)');
+            if (masterNextBtn) {
+                masterNextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    randomNextPokemon();
+                });
+            }
+            
+            // 成功模式的大师赛下一个按钮
+            var kidNextBtn = document.querySelector('.master-next-btn.kid-style');
+            if (kidNextBtn) {
+                kidNextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    randomNextFromSuccess();
+                });
+            }
+        });
         
         // 当前宝可梦名称（用于语音验证）
         var currentPokemonName = "{{ cn_name or pokemon.name }}";
