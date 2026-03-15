@@ -546,18 +546,6 @@ def get_pokemon_description(pokemon_id):
             if desc:
                 descriptions.append(desc)
     
-    # 去除重复描述
-    unique_descriptions = []
-    seen_content = set()
-    for desc in descriptions:
-        # 简单的去重：去掉空格后比较
-        normalized = desc.replace(' ', '')
-        if normalized not in seen_content:
-            seen_content.add(normalized)
-            unique_descriptions.append(desc)
-    
-    descriptions = unique_descriptions
-    
     # 获取栖息地
     habitat = None
     if species_data.get('habitat'):
@@ -596,27 +584,12 @@ def get_pokemon_moves(pokemon_id):
         return []
     
     moves = []
-    # 获取每个技能的详细信息（包括威力）
-    for move_info in detail_data.get('moves', [])[:30]:
+    # 只获取前8个技能，不获取中文名（使用本地映射）
+    for move_info in detail_data.get('moves', [])[:20]:
         move_name = move_info['move']['name']
-        move_url = move_info['move']['url']
-        
         # 优先使用本地中文映射
         cn_name = MOVE_NAMES_CN.get(move_name, move_name)
-        
-        # 获取技能威力（用于排序）
-        power = 0
-        try:
-            move_data = fetch_json_with_cache(move_url, f"move_{move_name}")
-            if move_data:
-                power = move_data.get('power') or 0
-        except:
-            pass
-        
-        moves.append({'name': move_name, 'cn_name': cn_name, 'power': power})
-    
-    # 按威力降序排序（威力大的在前，作为招牌技能）
-    moves.sort(key=lambda x: x['power'] if x['power'] else 0, reverse=True)
+        moves.append({'name': move_name, 'cn_name': cn_name})
     
     APICache.set(cache_key, moves)
     return moves

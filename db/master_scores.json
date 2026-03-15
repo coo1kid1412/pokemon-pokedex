@@ -1,1 +1,29 @@
-{}
+{
+  "total_success": 3,
+  "daily_records": {
+    "2026-03-15": {
+      "success": 3,
+      "total": 3
+    }
+  },
+  "records": [
+    {
+      "timestamp": "2026-03-15T14:51:30.715605",
+      "pokemon_id": 88,
+      "pokemon_name": "臭泥",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:52:33.853821",
+      "pokemon_id": 106,
+      "pokemon_name": "飞腿郎",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:54:54.158728",
+      "pokemon_id": 809,
+      "pokemon_name": "美录梅塔",
+      "success": true
+    }
+  ]
+}

@@ -1614,6 +1614,11 @@
         
         // 页面加载时初始化显示
         function initCapturedDisplay() {
+            // 检查元素是否存在（非大师赛模式可能不存在）
+            if (!document.getElementById('capturedContainer')) {
+                return;
+            }
+            
             // 获取当前宝可梦
             var currentId = {{ pokemon_id }};
             
@@ -1624,6 +1629,9 @@
         
         // 记录已曝光的宝可梦
         function addChallengeViewed(pokemonId) {
+            if (!document.getElementById('capturedContainer')) {
+                return;
+            }
             if (!challengeViewedIds.includes(pokemonId)) {
                 challengeViewedIds.push(pokemonId);
             }
@@ -1632,6 +1640,9 @@
         
         // 记录成功收服的宝可梦
         function addCapturedPokemon(pokemonId, pokemonName, spriteUrl) {
+            if (!document.getElementById('capturedContainer')) {
+                return;
+            }
             // 检查是否已存在
             var exists = capturedPokemonList.find(function(p) {
                 return p.id === pokemonId;
@@ -1661,12 +1672,17 @@
         
         // 更新显示
         function updateCapturedDisplay() {
+            // 检查元素是否存在
+            var container = document.getElementById('capturedList');
+            if (!container) {
+                return;
+            }
+            
             // 更新计数
             document.getElementById('challengedCount').textContent = challengeViewedIds.length;
             document.getElementById('capturedCount').textContent = capturedPokemonList.length;
             
             // 更新缩略图列表
-            var container = document.getElementById('capturedList');
             container.innerHTML = '';
             
             capturedPokemonList.forEach(function(p) {
