@@ -1,5 +1,5 @@
 {
-  "total_success": 55,
+  "total_success": 57,
   "records": [
     {
       "timestamp": "2026-03-08T22:59:03.293006",
@@ -330,6 +330,18 @@
       "pokemon_id": 73,
       "pokemon_name": "毒刺水母",
       "success": true
+    },
+    {
+      "timestamp": "2026-03-15T08:56:10.055386",
+      "pokemon_id": 138,
+      "pokemon_name": "菊石兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T08:56:39.872606",
+      "pokemon_id": 95,
+      "pokemon_name": "大岩蛇",
+      "success": true
     }
   ],
   "daily_records": {
@@ -350,8 +362,8 @@
       "total": 5
     },
     "2026-03-15": {
-      "success": 4,
-      "total": 4
+      "success": 6,
+      "total": 6
     }
   }
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼音匹配测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>拼音匹配测试 - 138号 菊石兽</h1>
+    <button onclick="testPinyin()">测试拼音获取</button>
+    <div id="output"></div>
+
+    <script>
+        var pokemonPinyinCache = {};
+        var currentPokemonId = '138';
+
+        function log(msg, isError) {
+            var div = document.createElement('div');
+            div.className = 'result' + (isError ? ' error' : ' success');
+            div.textContent = msg;
+            document.getElementById('output').appendChild(div);
+            console.log(msg);
+        }
+
+        function testPinyin() {
+            document.getElementById('output').innerHTML = '';
+            log('开始测试...');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/pokemon_names_pinyin', true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    pokemonPinyinCache = JSON.parse(xhr.responseText);
+                    log('API返回数据: ' + JSON.stringify(pokemonPinyinCache));
+
+                    // 测试当前错误方式（期望对象嵌套）
+                    var wrongPinyin = pokemonPinyinCache[currentPokemonId].pinyin;
+                    log('错误方式 (pinyin对象): ' + wrongPinyin, !wrongPinyin);
+
+                    // 测试正确方式（直接字符串）
+                    var correctPinyin = pokemonPinyinCache[currentPokemonId];
+                    log('正确方式 (直接字符串): ' + correctPinyin, !correctPinyin);
+                } else {
+                    log('请求失败: ' + xhr.status, true);
+                }
+            };
+            xhr.onerror = function() {
+                log('网络错误', true);
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

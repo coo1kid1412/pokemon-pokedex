@@ -2108,9 +2108,10 @@
             console.log('开始拼音对比...');
             
             // 1. 获取当前宝可梦名称的拼音（从预加载的缓存中获取）
+            // API返回格式: {"138": "jushishou", "139": "jushishouzi"}，直接是字符串
             var targetPinyin = '';
             if (pokemonPinyinCache && pokemonPinyinCache[currentPokemonId]) {
-                targetPinyin = pokemonPinyinCache[currentPokemonId].pinyin || '';
+                targetPinyin = pokemonPinyinCache[currentPokemonId] || '';
                 console.log('目标拼音(缓存):', targetPinyin);
             }
             
