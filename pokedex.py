@@ -32,7 +32,7 @@ app = Flask(__name__)
 
 # 配置
 POKEMON_DB_PATH = '/Users/lailixiang/.openclaw/workspace/pokemon/db/pokemons.json'
-POKEMONS_PER_PAGE = 6  # 首屏显示6个，提升LCP
+POKEMONS_PER_PAGE = 30
 SPRITE_DIR = '/Users/lailixiang/.openclaw/workspace/scripts/static/sprites'
 SPRITE_URL_BASE = '/static/sprites'
 
