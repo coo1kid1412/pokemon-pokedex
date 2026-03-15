@@ -1011,6 +1011,20 @@ def chinese_to_pinyin():
     except Exception as e:
         return jsonify({'pinyin': '', 'error': str(e)})
 
+
+def get_all_unique_chars_count():
+    """获取所有宝可梦名称中去重后的汉字数量"""
+    from pokemon_names_cn_full import POKEMON_NAMES_CN
+    all_chars = set()
+    for name in POKEMON_NAMES_CN.values():
+        for char in name:
+            all_chars.add(char)
+    return len(all_chars)
+
+# 预计算所有宝可梦去重汉字数（分母）
+ALL_POKEMON_UNIQUE_CHARS_COUNT = get_all_unique_chars_count()
+
+
 @app.route('/api/pokemon_names_pinyin')
 def pokemon_names_pinyin():
     """获取所有宝可梦名称的拼音"""
@@ -1234,12 +1248,28 @@ def get_master_scores():
     today = datetime.now().strftime('%Y-%m-%d')
     today_data = data.get('daily_records', {}).get(today, {'success': 0, 'total': 0})
     
+    # 计算累计成功认字（分子）：挑战成功的宝可梦名称中去重后的汉字数
+    successful_chars = set()
+    for record in data.get('records', []):
+        if record.get('success'):
+            name = record.get('pokemon_name', '')
+            for char in name:
+                successful_chars.add(char)
+    
+    # 分子/分母格式
+    unique_chars_count = len(successful_chars)
+    total_unique_chars = ALL_POKEMON_UNIQUE_CHARS_COUNT  # 分母
+    
     return jsonify({
         'total_success': data.get('total_success', 0),
         'today_success': today_data.get('success', 0),
         'today_total': today_data.get('total', 0),
         'level': get_level(data.get('total_success', 0)),
-        'records': data.get('records', [])[-20:]
+        'records': data.get('records', [])[-20:],
+        # 新增：累计成功认字（分子/分母格式）
+        'unique_chars': unique_chars_count,
+        'total_unique_chars': total_unique_chars,
+        'unique_chars_display': f'{unique_chars_count}/{total_unique_chars}'
     })
 
 @app.route('/api/master-scores/record', methods=['POST'])

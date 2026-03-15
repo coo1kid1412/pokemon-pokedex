@@ -1088,7 +1088,7 @@
             <div class="modal-title">🏆 挑战榜单</div>
             
             <div class="score-card">
-                <div class="score-number" id="totalScore">0</div>
+                <div class="score-number" id="uniqueCharsDisplay">0/943</div>
                 <div class="score-label">累计成功认字</div>
             </div>
             
@@ -1268,7 +1268,8 @@
             fetch('/api/master-scores')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('totalScore').textContent = data.total_success;
+                    // 显示累计成功认字（分子/分母格式）
+                    document.getElementById('uniqueCharsDisplay').textContent = data.unique_chars_display || '0/943';
                     document.getElementById('todaySuccess').textContent = data.today_success;
                     document.getElementById('todayTotal').textContent = data.today_total;
                     document.getElementById('levelBadge').textContent = data.level;
