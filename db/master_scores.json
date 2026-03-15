@@ -1,5 +1,5 @@
 {
-  "total_success": 59,
+  "total_success": 61,
   "records": [
     {
       "timestamp": "2026-03-08T22:59:03.293006",
@@ -354,6 +354,18 @@
       "pokemon_id": 145,
       "pokemon_name": "闪电鸟",
       "success": true
+    },
+    {
+      "timestamp": "2026-03-15T10:57:30.357937",
+      "pokemon_id": 110,
+      "pokemon_name": "双弹瓦斯",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T11:02:07.633133",
+      "pokemon_id": 389,
+      "pokemon_name": "土台龟",
+      "success": true
     }
   ],
   "daily_records": {
@@ -374,8 +386,8 @@
       "total": 5
     },
     "2026-03-15": {
-      "success": 8,
-      "total": 8
+      "success": 10,
+      "total": 10
     }
   }
 }

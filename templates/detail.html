@@ -236,30 +236,6 @@
             font-size: 18px;
         }
         
-        /* 探索新区域按钮 - 放大并放到右侧 */
-        .explore-btn {
-            padding: 16px 28px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: auto;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
-        }
-        
-        .explore-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        .explore-btn:active {
-            transform: scale(0.98);
-        }
-        
         .detail-card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -1362,11 +1338,6 @@
             
             <a href="/?page={{ from_page }}{% if back_filter %}&type={{ back_filter }}{% endif %}" class="back-link">⬅️ 返回图鉴</a>
             
-            <!-- 探索新区域按钮 - 普通模式也显示 -->
-            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
-                <span>🗺️ 探索新区域</span>
-            </button>
-            
             {% if next_info %}
             <a href="/pokemon/{{ next_info.id }}" class="nav-arrow nav-next" title="{{ next_info.cn_name }}">
                 <span class="nav-label">{{ next_info.cn_name }}</span>
@@ -1388,20 +1359,14 @@
                 <span>下一个</span>
                 <span class="btn-star">⭐</span>
             </button>
-            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
-                <span>🗺️ 探索新区域</span>
-            </button>
         </div>
         {% else %}
-        <!-- 大师赛模式：返回按钮 + 下一个按钮 + 探索新区域 -->
+        <!-- 大师赛模式：返回按钮 + 下一个按钮 -->
         <div class="detail-nav master-nav">
             <a href="/" class="back-link">⬅️ 返回</a>
             <button class="master-next-btn" onclick="randomNextPokemon()" title="随机下一个">
                 <span>下一个</span>
                 <span class="next-icon">🎲</span>
-            </button>
-            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
-                <span>🗺️ 探索新区域</span>
             </button>
         </div>
         {% endif %}
@@ -1565,27 +1530,6 @@
         
         // 已经被浏览过的二跳页ID集合（用于去重）
         var viewedPokemonIds = [];
-        
-        // 使用事件监听器绑定大师赛按钮点击（更可靠）
-        document.addEventListener('DOMContentLoaded', function() {
-            // 大师赛下一个按钮
-            var masterNextBtn = document.querySelector('.master-next-btn:not(.kid-style)');
-            if (masterNextBtn) {
-                masterNextBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    randomNextPokemon();
-                });
-            }
-            
-            // 成功模式的大师赛下一个按钮
-            var kidNextBtn = document.querySelector('.master-next-btn.kid-style');
-            if (kidNextBtn) {
-                kidNextBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    randomNextFromSuccess();
-                });
-            }
-        });
         
         // 当前宝可梦名称（用于语音验证）
         var currentPokemonName = "{{ cn_name or pokemon.name }}";
@@ -2757,59 +2701,6 @@
                 });
         }
         
-        // 探索新区域 - 随机所有宝可梦（排除已浏览的）
-        function exploreNewArea() {
-            var btn = document.querySelector('.explore-btn');
-            if (btn) {
-                btn.innerHTML = '<span>探索中...</span>';
-            }
-            
-            // 获取当前页ID
-            var currentId = {{ pokemon_id }};
-            
-            // 获取本地已浏览列表（从首页开始积累的）
-            var localViewed = [];
-            try {
-                var stored = localStorage.getItem('viewedPokemonIds');
-                localViewed = stored ? JSON.parse(stored) : [];
-            } catch(e) {}
-            
-            // 合并当前会话的浏览列表
-            if (typeof viewedPokemonIds === 'undefined') {
-                viewedPokemonIds = [];
-            }
-            var allViewed = [...new Set([...localViewed, ...viewedPokemonIds, currentId])];
-            
-            console.log('探索新区域 - 已浏览列表:', allViewed);
-            
-            // 调用API获取随机ID（所有宝可梦，排除已浏览）
-            fetch('/api/random-explore?exclude=' + allViewed.join(','))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.pokemon_id) {
-                        // 跳转到新宝可梦（不带master参数）
-                        window.location.href = '/pokemon/' + data.pokemon_id;
-                    } else if (data.error) {
-                        alert('没有更多宝可梦了');
-                        if (btn) {
-                            btn.innerHTML = '<span>🗺️ 探索新区域</span>';
-                        }
-                    } else {
-                        alert('获取宝可梦失败，请重试');
-                        if (btn) {
-                            btn.innerHTML = '<span>🗺️ 探索新区域</span>';
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.error('Error:', err);
-                    alert('网络错误，请重试');
-                    if (btn) {
-                        btn.innerHTML = '<span>🗺️ 探索新区域</span>';
-                    }
-                });
-        }
-        
         // 大师赛成功页：随机跳转到下一个大师赛二跳页（去重）
         function randomNextFromSuccess() {
             var btn = document.querySelector('.master-next-btn');
@@ -2817,11 +2708,8 @@
                 btn.innerHTML = '<span class="btn-icon">🎯</span><span>匹配中...</span><span class="btn-star">⭐</span>';
             }
             
-            // 添加当前页ID到已浏览列表（先检查是否定义）
+            // 添加当前页ID到已浏览列表
             var currentId = {{ pokemon_id }};
-            if (typeof viewedPokemonIds === 'undefined') {
-                viewedPokemonIds = [];
-            }
             if (!viewedPokemonIds.includes(currentId)) {
                 viewedPokemonIds.push(currentId);
             }

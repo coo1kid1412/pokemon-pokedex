@@ -1078,94 +1078,9 @@ def random_stage2_pokemon():
     return jsonify({'pokemon_id': random_id})
 
 
-@app.route('/api/random-explore')
-def random_explore():
-    """探索新区域 - 随机所有宝可梦（排除指定ID）"""
-    import random
-    
-    # 获取要排除的ID列表
-    exclude_str = request.args.get('exclude', '')
-    if exclude_str:
-        exclude_ids = [int(x) for x in exclude_str.split(',') if x.isdigit()]
-    else:
-        exclude_ids = []
-    
-    # 获取所有宝可梦ID
-    pokemons = PokemonDataCache.get_data()
-    all_ids = [int(pid) for pid in pokemons.keys()]
-    
-    # 排除已浏览的ID
-    available_ids = [x for x in all_ids if x not in exclude_ids]
-    
-    if not available_ids:
-        return jsonify({'error': '没有更多宝可梦了', 'pokemon_id': None})
-    
-    # 随机选择一个
-    random_id = random.choice(available_ids)
-    return jsonify({'pokemon_id': random_id})
-
-
-# ============ 大师赛挑战统计文件 ============
-MASTER_CHALLENGE_STATS_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_challenge_stats.json'
-
-def load_challenge_stats():
-    """加载挑战统计数据"""
-    try:
-        with open(MASTER_CHALLENGE_STATS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"加载挑战统计失败: {e}")
-        return {}
-
-def save_challenge_stats(data):
-    """保存挑战统计数据"""
-    try:
-        with open(MASTER_CHALLENGE_STATS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception as e:
-        print(f"保存挑战统计失败: {e}")
-
-def increment_success_count(pokemon_id):
-    """增加宝可梦挑战成功次数"""
-    stats = load_challenge_stats()
-    pid_str = str(pokemon_id)
-    stats[pid_str] = stats.get(pid_str, 0) + 1
-    save_challenge_stats(stats)
-    return stats[pid_str]
-
-def weighted_random_select(available_ids, stats):
-    """
-    加权随机选择：成功次数越多的宝可梦，被选中的概率越低
-    权重 = 1 / (1 + 成功次数)
-    """
-    import random
-    
-    if not available_ids:
-        return None
-    
-    weights = {}
-    for pid in available_ids:
-        success_count = stats.get(str(pid), 0)
-        # 成功0次: 权重=1
-        # 成功1次: 权重=0.5
-        # 成功9次: 权重=0.1
-        weights[pid] = 1.0 / (1 + success_count)
-    
-    total_weight = sum(weights.values())
-    r = random.random() * total_weight
-    
-    cumulative = 0
-    for pid in available_ids:
-        cumulative += weights[pid]
-        if r <= cumulative:
-            return pid
-    
-    return available_ids[-1]  # 默认返回最后一个
-
-
 @app.route('/api/random-stage2-with-exclude')
 def random_stage2_with_exclude():
-    """获取随机二跳页宝可梦（排除指定ID，用于去重）+ 加权随机选择"""
+    """获取随机二跳页宝可梦（排除指定ID，用于去重）"""
     import random
     
     # 获取要排除的ID列表
@@ -1181,14 +1096,9 @@ def random_stage2_with_exclude():
     if not available_ids:
         return jsonify({'error': '没有更多宝可梦了', 'pokemon_id': None})
     
-    # 加载挑战统计数据
-    stats = load_challenge_stats()
-    
-    # 使用加权随机选择（成功次数多的被选中概率低）
-    random_id = weighted_random_select(available_ids, stats)
-    
+    # 随机选择一个
+    random_id = random.choice(available_ids)
     return jsonify({'pokemon_id': random_id})
-
 
 # ============ 大师赛榜单 API ============
 MASTER_SCORES_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_scores.json'
@@ -1261,8 +1171,6 @@ def record_master_score():
     # 更新总数
     if success:
         data['total_success'] = data.get('total_success', 0) + 1
-        # 同时更新挑战成功统计（用于加权随机选择）
-        increment_success_count(pokemon_id)
     
     # 更新每日记录
     if 'daily_records' not in data:

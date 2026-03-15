@@ -1052,7 +1052,7 @@
     <div class="pokeball-decor bottom-left">⚽</div>
     
     <!-- 宝可梦大师赛徽章控件 -->
-    <div class="master-badge" title="宝可梦大师赛">
+    <a href="#" onclick="startMasterChallenge(event)" class="master-badge" title="宝可梦大师赛">
         <div class="master-icon">🏆</div>
         <div class="master-ribbon">
             <div class="ribbon-main">
@@ -1060,7 +1060,20 @@
             </div>
         </div>
         <div class="master-subtext">CHAMPIONSHIP</div>
-    </div>
+    </a>
+    
+    <script>
+    function startMasterChallenge(e) {
+        e.preventDefault();
+        fetch('/api/random-stage2')
+            .then(r => r.json())
+            .then(data => {
+                if (data.pokemon_id) {
+                    window.location.href = '/pokemon/' + data.pokemon_id + '?master=true';
+                }
+            });
+    }
+    </script>
     
     <!-- 大师赛榜单按钮 -->
     <button class="leaderboard-btn" onclick="showLeaderboard()" title="挑战榜单">
@@ -1168,7 +1181,7 @@
         
         <div class="pagination">
             {% if page > 1 %}
-            <a href="/?page={{ page - 1 }}">⬅️ 上一页</a>
+            <a href="/?page={{ page - 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}">⬅️ 上一页</a>
             {% endif %}
             
             <span class="current">第 {{ page }} / {{ total_pages }} 页</span>
@@ -1180,7 +1193,7 @@
             </span>
             
             {% if page < total_pages %}
-            <a href="/?page={{ page + 1 }}">下一页 ➡️</a>
+            <a href="/?page={{ page + 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}">下一页 ➡️</a>
             {% endif %}
         </div>
         
@@ -1190,31 +1203,6 @@
     </div>
     
     <script>
-        // 显示榜单 Modal
-        function showLeaderboard() {
-            // 获取榜单数据
-            fetch('/api/master-scores')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('totalScore').textContent = data.total_success;
-                    document.getElementById('todaySuccess').textContent = data.today_success;
-                    document.getElementById('todayTotal').textContent = data.today_total;
-                    document.getElementById('levelBadge').textContent = data.level;
-                    
-                    // 如果今日有成功，显示徽章
-                    const badge = document.getElementById('todayBadge');
-                    if (data.today_success > 0) {
-                        badge.textContent = data.today_success;
-                        badge.style.display = 'block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                })
-                .catch(err => console.error('获取榜单失败:', err));
-            
-            document.getElementById('leaderboardModal').classList.add('active');
-        }
-        
         // 页码跳转功能
         function jumpToPage() {
             var input = document.getElementById('pageJumpInput');
@@ -1239,7 +1227,6 @@
         });
         
         // ========== 已浏览记录功能 ==========
-        // 从localStorage获取已浏览的宝可梦ID列表
         function getViewedPokemonIds() {
             try {
                 var stored = localStorage.getItem('viewedPokemonIds');
@@ -1249,14 +1236,12 @@
             }
         }
         
-        // 保存已浏览的宝可梦ID到localStorage
         function saveViewedPokemonIds(ids) {
             try {
                 localStorage.setItem('viewedPokemonIds', JSON.stringify(ids));
             } catch(e) {}
         }
         
-        // 添加已浏览记录
         function addViewedPokemon(pokemonId) {
             var ids = getViewedPokemonIds();
             if (!ids.includes(pokemonId)) {
@@ -1275,8 +1260,32 @@
                 }
             });
         });
-        
         // ========== 已浏览记录功能结束 ==========
+        
+        // 显示榜单 Modal
+        function showLeaderboard() {
+            // 获取榜单数据
+            fetch('/api/master-scores')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalScore').textContent = data.total_success;
+                    document.getElementById('todaySuccess').textContent = data.today_success;
+                    document.getElementById('todayTotal').textContent = data.today_total;
+                    document.getElementById('levelBadge').textContent = data.level;
+                    
+                    // 如果今日有成功，显示徽章
+                    const badge = document.getElementById('todayBadge');
+                    if (data.today_success > 0) {
+                        badge.textContent = data.today_success;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('获取榜单失败:', err));
+            
+            document.getElementById('leaderboardModal').classList.add('active');
+        }
         
         // 关闭榜单 Modal
         function closeLeaderboard(event) {
