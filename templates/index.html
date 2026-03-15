@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宝可梦图鉴</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
+    <!-- 预加载首屏关键图片 -->
+    <link rel="preload" as="image" href="/sprite/1.png">
+    <link rel="preload" as="image" href="/sprite/2.png">
+    <link rel="preload" as="image" href="/sprite/3.png">
+    <link rel="preload" as="image" href="/sprite/4.png">
+    <link rel="preload" as="image" href="/sprite/5.png">
+    <link rel="preload" as="image" href="/sprite/6.png">
     <style>
         * {
             margin: 0;
@@ -932,27 +939,27 @@
     </div>
     
     <script>
-        // 开启动画控制
+        // 开启动画控制 - 优化LCP：尽快隐藏遮罩让首屏内容可见
         document.addEventListener('DOMContentLoaded', function() {
             const intro = document.getElementById('pokedexIntro');
             const body = document.body;
             const lightning = document.getElementById('lightning');
             const lightBeams = document.querySelectorAll('.light-beam');
             
-            // 3秒后开始消失动画
+            // 减少动画时间，快速显示内容
             setTimeout(function() {
                 // 闪电效果
                 lightning.classList.add('active');
                 lightBeams.forEach(function(beam) {
                     beam.classList.add('active');
                 });
-            }, 800);
+            }, 300);  // 0.3秒后开始闪电
             
-            // 3.5秒后完全隐藏动画遮罩
+            // 1秒后隐藏动画遮罩，让首屏内容尽快可见
             setTimeout(function() {
                 intro.classList.add('hidden');
                 body.classList.add('visible');
-            }, 3200);
+            }, 1000);  // 1秒后完全隐藏（原来是3.2秒）
             
             // 播放音效（可选）
             try {
