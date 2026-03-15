@@ -1138,6 +1138,8 @@ def weighted_random_select(available_ids, stats):
     加权随机选择：成功次数越多的宝可梦，被选中的概率越低
     权重 = 1 / (1 + 成功次数)
     """
+    import random
+    
     if not available_ids:
         return None
     
