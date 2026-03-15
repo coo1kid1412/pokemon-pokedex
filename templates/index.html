@@ -1120,7 +1120,7 @@
             {% for pokemon in pokemons %}
             <a href="/pokemon/{{ pokemon.id }}?from_page={{ page }}&from_type={{ filter_type or '' }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.01 + 0.1 }}s">
                 <div class="pokemon-number">#{{ "%03d"|format(pokemon.id) }}</div>
-                <img src="{{ pokemon.sprite_url }}" {% if loop.index0 < 12 %}loading="eager"{% else %}loading="lazy"{% endif %} alt="{{ pokemon.name }}" class="pokemon-image skeleton" onload="this.classList.remove('skeleton'); this.classList.add('loaded');">
+                <img src="{{ pokemon.sprite_url }}" {% if loop.index0 < 6 %}loading="eager"{% else %}loading="lazy"{% endif %} alt="{{ pokemon.name }}" class="pokemon-image skeleton" onload="this.classList.remove('skeleton'); this.classList.add('loaded');">
                 <div class="pokemon-name">{{ pokemon.name }}</div>
                 <div class="pokemon-cn-name">{{ pokemon.cn_name or '' }}</div>
                 <div class="types">
