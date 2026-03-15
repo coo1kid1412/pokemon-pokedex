@@ -574,6 +574,27 @@
             image-rendering: pixelated;
             transition: transform 0.3s ease;
         }
+
+        /* 骨架屏样式 */
+        .pokemon-image.skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .pokemon-image.loaded {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
         
         .pokemon-card:hover .pokemon-image {
             transform: scale(1.1) rotate(5deg);
@@ -1099,7 +1120,7 @@
             {% for pokemon in pokemons %}
             <a href="/pokemon/{{ pokemon.id }}?from_page={{ page }}&from_type={{ filter_type or '' }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.01 + 0.1 }}s">
                 <div class="pokemon-number">#{{ "%03d"|format(pokemon.id) }}</div>
-                <img src="{{ pokemon.sprite_url }}" loading="lazy" alt="{{ pokemon.name }}" class="pokemon-image">
+                <img src="{{ pokemon.sprite_url }}" {% if loop.index0 < 12 %}loading="eager"{% else %}loading="lazy"{% endif %} alt="{{ pokemon.name }}" class="pokemon-image skeleton" onload="this.classList.remove('skeleton'); this.classList.add('loaded');">
                 <div class="pokemon-name">{{ pokemon.name }}</div>
                 <div class="pokemon-cn-name">{{ pokemon.cn_name or '' }}</div>
                 <div class="types">
