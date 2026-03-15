@@ -289,6 +289,74 @@
             text-align: center;
         }
         
+        /* 已收服宝可梦区域 */
+        .captured-pokemon-container {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .captured-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .captured-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .captured-stats {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .captured-stats span {
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .captured-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            min-height: 60px;
+        }
+        
+        .captured-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #4ade80;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .captured-item:hover {
+            transform: scale(1.1);
+        }
+        
+        .captured-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #fff;
+        }
+        
         .manual-input-container {
             margin-top: 20px;
             display: flex;
@@ -1403,6 +1471,18 @@
                     <div class="result-hint"></div>
                 </div>
             </div>
+            
+            <!-- 已收服宝可梦区域 -->
+            <div class="captured-pokemon-container" id="capturedContainer">
+                <div class="captured-header">
+                    <span class="captured-title">🎯 已收服宝可梦</span>
+                </div>
+                <div class="captured-stats">
+                    本次已挑战 <span id="challengedCount">0</span> 宝可梦，成功收服 <span id="capturedCount">0</span> 宝可梦
+                </div>
+                <div class="captured-list" id="capturedList">
+                </div>
+            </div>
             {% else %}
             <!-- 播放叫声按钮 -->
             <button class="cry-button" onclick="playCry()">
@@ -1525,6 +1605,89 @@
         
         // 已经被浏览过的二跳页ID集合（用于去重）
         var viewedPokemonIds = [];
+        
+        // 本次挑战已曝光的宝可梦ID列表（用于显示"已挑战"数量）
+        var challengeViewedIds = [];
+        
+        // 本次成功收服的宝可梦列表（最多10个，先进先出）
+        var capturedPokemonList = [];
+        
+        // 页面加载时初始化显示
+        function initCapturedDisplay() {
+            // 获取当前宝可梦
+            var currentId = {{ pokemon_id }};
+            
+            // 初始化或恢复本次挑战数据
+            challengeViewedIds = [currentId];
+            updateCapturedDisplay();
+        }
+        
+        // 记录已曝光的宝可梦
+        function addChallengeViewed(pokemonId) {
+            if (!challengeViewedIds.includes(pokemonId)) {
+                challengeViewedIds.push(pokemonId);
+            }
+            updateCapturedDisplay();
+        }
+        
+        // 记录成功收服的宝可梦
+        function addCapturedPokemon(pokemonId, pokemonName, spriteUrl) {
+            // 检查是否已存在
+            var exists = capturedPokemonList.find(function(p) {
+                return p.id === pokemonId;
+            });
+            
+            if (exists) {
+                // 如果已存在，移除旧的（后面会加到最前面）
+                capturedPokemonList = capturedPokemonList.filter(function(p) {
+                    return p.id !== pokemonId;
+                });
+            }
+            
+            // 添加到最前面
+            capturedPokemonList.unshift({
+                id: pokemonId,
+                name: pokemonName,
+                sprite: spriteUrl
+            });
+            
+            // 最多保留10个
+            if (capturedPokemonList.length > 10) {
+                capturedPokemonList.pop();
+            }
+            
+            updateCapturedDisplay();
+        }
+        
+        // 更新显示
+        function updateCapturedDisplay() {
+            // 更新计数
+            document.getElementById('challengedCount').textContent = challengeViewedIds.length;
+            document.getElementById('capturedCount').textContent = capturedPokemonList.length;
+            
+            // 更新缩略图列表
+            var container = document.getElementById('capturedList');
+            container.innerHTML = '';
+            
+            capturedPokemonList.forEach(function(p) {
+                var item = document.createElement('div');
+                item.className = 'captured-item';
+                item.title = p.name;
+                item.onclick = function() {
+                    window.location.href = '/pokemon/' + p.id + '?master=true';
+                };
+                
+                var img = document.createElement('img');
+                img.src = '/sprite/' + p.id + '.png';
+                img.alt = p.name;
+                
+                item.appendChild(img);
+                container.appendChild(item);
+            });
+        }
+        
+        // 页面加载时初始化
+        initCapturedDisplay();
         
         // 当前宝可梦名称（用于语音验证）
         var currentPokemonName = "{{ cn_name or pokemon.name }}";
@@ -2175,6 +2338,9 @@
             var currentName = "{{ cn_name or pokemon.name }}";
             var spriteUrl = "{{ sprite_url }}";
             
+            // 记录成功收服
+            addCapturedPokemon(currentId, currentName, spriteUrl);
+            
             // 创建过场动画 overlay
             var overlay = document.createElement('div');
             overlay.className = 'pokemon-intro-overlay';
@@ -2666,6 +2832,9 @@
                 viewedPokemonIds.push(currentId);
             }
             
+            // 记录本次已挑战
+            addChallengeViewed(currentId);
+            
             console.log('当前已浏览列表:', viewedPokemonIds);
             
             // 调用API获取随机ID（带已浏览列表参数进行去重）
@@ -2708,6 +2877,9 @@
             if (!viewedPokemonIds.includes(currentId)) {
                 viewedPokemonIds.push(currentId);
             }
+            
+            // 记录本次已挑战
+            addChallengeViewed(currentId);
             
             // 调用API获取随机ID（带已浏览列表参数）
             fetch('/api/random-stage2-with-exclude?exclude=' + viewedPokemonIds.join(','))
