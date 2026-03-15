@@ -2115,50 +2115,50 @@
                 console.log('目标拼音(缓存):', targetPinyin);
             }
             
-            // 2. 如果缓存中没有，使用API获取当前宝可梦名称的拼音
-            if (!targetPinyin) {
-                chineseToPinyin(currentPokemonName, function(apiPinyin) {
-                    if (apiPinyin) {
-                        targetPinyin = apiPinyin;
-                    } else {
-                        targetPinyin = localChineseToPinyin(currentPokemonName);
-                    }
-                    doCompare(text, targetPinyin, startTime);
-                });
-            } else {
-                doCompare(text, targetPinyin, startTime);
+            // 如果缓存中没有，调用后端API获取拼音（使用本地pypinyin库）
+            if (!targetPinyin && currentPokemonName) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/chinese_to_pinyin?text=' + encodeURIComponent(currentPokemonName), false);
+                xhr.send();
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        targetPinyin = data.pinyin || '';
+                        console.log('目标拼音(后端API):', targetPinyin);
+                    } catch(e) {}
+                }
             }
-        }
-        
-        // 执行拼音对比
-        function doCompare(text, targetPinyin, startTime) {
-            // 3. 通过API获取用户录音的拼音
+            
+            // 2. 获取用户录音的拼音（使用后端本地pypinyin库，不再用有道API）
             var cleanText = text.replace(/[。，！？、\s]/g, '');
             
-            chineseToPinyin(cleanText, function(userPinyin) {
-                var rt = Date.now() - startTime;
-                console.log('用户拼音(API):', userPinyin, '目标拼音:', targetPinyin, '耗时:', rt + 'ms');
-                
-                // 如果API失败，使用本地映射表作为后备
-                if (!userPinyin) {
-                    userPinyin = localChineseToPinyin(cleanText);
-                    console.log('用户拼音(本地):', userPinyin);
-                }
-                
-                // 4. 对比拼音（忽略翘舌和后鼻音差异）
-                var isCorrect = comparePinyinIgnoreDiff(userPinyin, targetPinyin);
-                
-                if (isCorrect) {
-                    showResult(true, '念对了！🎉', '太棒了，你认识这个宝可梦！(RT:' + rt + 'ms)');
-                    setTimeout(function() {
-                        showMasterSuccess();
-                    }, 1500);
-                } else {
-                    var userPy = userPinyin || '(无法识别)';
-                    var targetPy = targetPinyin || '(无数据)';
-                    showResult(false, '再试试吧', '你念的是：' + text + ' (' + userPy + ')，正确答案拼音：' + targetPy + '，再试一次！');
-                }
-            });
+            var userXhr = new XMLHttpRequest();
+            userXhr.open('GET', '/api/chinese_to_pinyin?text=' + encodeURIComponent(cleanText), false);
+            userXhr.send();
+            var userPinyin = '';
+            if (userXhr.status === 200) {
+                try {
+                    var userData = JSON.parse(userXhr.responseText);
+                    userPinyin = userData.pinyin || '';
+                    console.log('用户拼音(后端API):', userPinyin);
+                } catch(e) {}
+            }
+            
+            var rt = Date.now() - startTime;
+            
+            // 3. 对比拼音（忽略翘舌和后鼻音差异）
+            var isCorrect = comparePinyinIgnoreDiff(userPinyin, targetPinyin);
+            
+            if (isCorrect) {
+                showResult(true, '念对了！🎉', '太棒了，你认识这个宝可梦！(RT:' + rt + 'ms)');
+                setTimeout(function() {
+                    showMasterSuccess();
+                }, 1500);
+            } else {
+                var userPy = userPinyin || '(无法识别)';
+                var targetPy = targetPinyin || '(无数据)';
+                showResult(false, '再试试吧', '你念的是：' + text + ' (' + userPy + ')，正确答案拼音：' + targetPy + '，再试一次！');
+            }
         }
         
         // 显示结果
