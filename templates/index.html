@@ -1238,6 +1238,46 @@
             }
         });
         
+        // ========== 已浏览记录功能 ==========
+        // 从localStorage获取已浏览的宝可梦ID列表
+        function getViewedPokemonIds() {
+            try {
+                var stored = localStorage.getItem('viewedPokemonIds');
+                return stored ? JSON.parse(stored) : [];
+            } catch(e) {
+                return [];
+            }
+        }
+        
+        // 保存已浏览的宝可梦ID到localStorage
+        function saveViewedPokemonIds(ids) {
+            try {
+                localStorage.setItem('viewedPokemonIds', JSON.stringify(ids));
+            } catch(e) {}
+        }
+        
+        // 添加已浏览记录
+        function addViewedPokemon(pokemonId) {
+            var ids = getViewedPokemonIds();
+            if (!ids.includes(pokemonId)) {
+                ids.push(pokemonId);
+                saveViewedPokemonIds(ids);
+            }
+        }
+        
+        // 点击宝可梦卡片时记录浏览
+        document.querySelectorAll('.pokemon-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var href = this.getAttribute('href');
+                var match = href.match(/\/pokemon\/(\d+)/);
+                if (match) {
+                    addViewedPokemon(parseInt(match[1]));
+                }
+            });
+        });
+        
+        // ========== 已浏览记录功能结束 ==========
+        
         // 关闭榜单 Modal
         function closeLeaderboard(event) {
             if (!event || event.target === document.getElementById('leaderboardModal')) {

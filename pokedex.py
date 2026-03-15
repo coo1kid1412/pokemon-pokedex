@@ -1078,6 +1078,33 @@ def random_stage2_pokemon():
     return jsonify({'pokemon_id': random_id})
 
 
+@app.route('/api/random-explore')
+def random_explore():
+    """探索新区域 - 随机所有宝可梦（排除指定ID）"""
+    import random
+    
+    # 获取要排除的ID列表
+    exclude_str = request.args.get('exclude', '')
+    if exclude_str:
+        exclude_ids = [int(x) for x in exclude_str.split(',') if x.isdigit()]
+    else:
+        exclude_ids = []
+    
+    # 获取所有宝可梦ID
+    pokemons = PokemonDataCache.get_data()
+    all_ids = [int(pid) for pid in pokemons.keys()]
+    
+    # 排除已浏览的ID
+    available_ids = [x for x in all_ids if x not in exclude_ids]
+    
+    if not available_ids:
+        return jsonify({'error': '没有更多宝可梦了', 'pokemon_id': None})
+    
+    # 随机选择一个
+    random_id = random.choice(available_ids)
+    return jsonify({'pokemon_id': random_id})
+
+
 # ============ 大师赛挑战统计文件 ============
 MASTER_CHALLENGE_STATS_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_challenge_stats.json'
 

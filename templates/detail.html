@@ -236,6 +236,30 @@
             font-size: 18px;
         }
         
+        /* 探索新区域按钮 */
+        .explore-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .explore-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .explore-btn:active {
+            transform: scale(0.98);
+        }
+        
         .detail-card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -1359,14 +1383,20 @@
                 <span>下一个</span>
                 <span class="btn-star">⭐</span>
             </button>
+            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
+                <span>🗺️ 探索新区域</span>
+            </button>
         </div>
         {% else %}
-        <!-- 大师赛模式：返回按钮 + 下一个按钮 -->
+        <!-- 大师赛模式：返回按钮 + 下一个按钮 + 探索新区域 -->
         <div class="detail-nav master-nav">
             <a href="/" class="back-link">⬅️ 返回</a>
             <button class="master-next-btn" onclick="randomNextPokemon()" title="随机下一个">
                 <span>下一个</span>
                 <span class="next-icon">🎲</span>
+            </button>
+            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
+                <span>🗺️ 探索新区域</span>
             </button>
         </div>
         {% endif %}
@@ -2697,6 +2727,59 @@
                     alert('网络错误，请重试');
                     if (btn) {
                         btn.innerHTML = '<span>下一个</span><span class="next-icon">🎲</span>';
+                    }
+                });
+        }
+        
+        // 探索新区域 - 随机所有宝可梦（排除已浏览的）
+        function exploreNewArea() {
+            var btn = document.querySelector('.explore-btn');
+            if (btn) {
+                btn.innerHTML = '<span>探索中...</span>';
+            }
+            
+            // 获取当前页ID
+            var currentId = {{ pokemon_id }};
+            
+            // 获取本地已浏览列表（从首页开始积累的）
+            var localViewed = [];
+            try {
+                var stored = localStorage.getItem('viewedPokemonIds');
+                localViewed = stored ? JSON.parse(stored) : [];
+            } catch(e) {}
+            
+            // 合并当前会话的浏览列表
+            if (typeof viewedPokemonIds === 'undefined') {
+                viewedPokemonIds = [];
+            }
+            var allViewed = [...new Set([...localViewed, ...viewedPokemonIds, currentId])];
+            
+            console.log('探索新区域 - 已浏览列表:', allViewed);
+            
+            // 调用API获取随机ID（所有宝可梦，排除已浏览）
+            fetch('/api/random-explore?exclude=' + allViewed.join(','))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pokemon_id) {
+                        // 跳转到新宝可梦（不带master参数）
+                        window.location.href = '/pokemon/' + data.pokemon_id;
+                    } else if (data.error) {
+                        alert('没有更多宝可梦了');
+                        if (btn) {
+                            btn.innerHTML = '<span>🗺️ 探索新区域</span>';
+                        }
+                    } else {
+                        alert('获取宝可梦失败，请重试');
+                        if (btn) {
+                            btn.innerHTML = '<span>🗺️ 探索新区域</span>';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('网络错误，请重试');
+                    if (btn) {
+                        btn.innerHTML = '<span>🗺️ 探索新区域</span>';
                     }
                 });
         }
