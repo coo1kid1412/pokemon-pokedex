@@ -1362,6 +1362,11 @@
             
             <a href="/?page={{ from_page }}{% if back_filter %}&type={{ back_filter }}{% endif %}" class="back-link">⬅️ 返回图鉴</a>
             
+            <!-- 探索新区域按钮 - 普通模式也显示 -->
+            <button class="explore-btn" onclick="exploreNewArea()" title="探索新区域">
+                <span>🗺️ 探索新区域</span>
+            </button>
+            
             {% if next_info %}
             <a href="/pokemon/{{ next_info.id }}" class="nav-arrow nav-next" title="{{ next_info.cn_name }}">
                 <span class="nav-label">{{ next_info.cn_name }}</span>
@@ -2791,8 +2796,11 @@
                 btn.innerHTML = '<span class="btn-icon">🎯</span><span>匹配中...</span><span class="btn-star">⭐</span>';
             }
             
-            // 添加当前页ID到已浏览列表
+            // 添加当前页ID到已浏览列表（先检查是否定义）
             var currentId = {{ pokemon_id }};
+            if (typeof viewedPokemonIds === 'undefined') {
+                viewedPokemonIds = [];
+            }
             if (!viewedPokemonIds.includes(currentId)) {
                 viewedPokemonIds.push(currentId);
             }
