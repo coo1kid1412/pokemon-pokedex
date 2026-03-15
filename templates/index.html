@@ -676,6 +676,42 @@
             animation: gridFadeIn 0.5s ease-out 2.7s both;
         }
         
+        /* 页码跳转输入框 */
+        .page-jump {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        
+        .page-jump input {
+            width: 50px;
+            padding: 6px 8px;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .page-jump input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        
+        .page-jump button {
+            padding: 6px 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .page-jump button:hover {
+            background: #ff5252;
+        }
+        
         .pagination a, .pagination span {
             display: inline-block;
             padding: 10px 20px;
@@ -1137,6 +1173,12 @@
             
             <span class="current">第 {{ page }} / {{ total_pages }} 页</span>
             
+            <!-- 页码跳转 -->
+            <span class="page-jump">
+                <input type="number" id="pageJumpInput" min="1" max="{{ total_pages }}" placeholder="跳转">
+                <button onclick="jumpToPage()">GO</button>
+            </span>
+            
             {% if page < total_pages %}
             <a href="/?page={{ page + 1 }}">下一页 ➡️</a>
             {% endif %}
@@ -1172,6 +1214,29 @@
             
             document.getElementById('leaderboardModal').classList.add('active');
         }
+        
+        // 页码跳转功能
+        function jumpToPage() {
+            var input = document.getElementById('pageJumpInput');
+            var page = parseInt(input.value);
+            var totalPages = {{ total_pages }};
+            
+            if (isNaN(page) || page < 1 || page > totalPages) {
+                alert('请输入1-' + totalPages + '之间的页码');
+                return;
+            }
+            
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', page);
+            window.location.href = url.toString();
+        }
+        
+        // 回车触发跳转
+        document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                jumpToPage();
+            }
+        });
         
         // 关闭榜单 Modal
         function closeLeaderboard(event) {
