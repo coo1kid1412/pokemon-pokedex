@@ -309,18 +309,77 @@ class APICache:
     _cache = {}
     _cache_time = {}
     CACHE_TTL = 7200  # 2小时缓存
-    
+
     @classmethod
     def get(cls, key):
         if key in cls._cache:
             if time.time() - cls._cache_time[key] < cls.CACHE_TTL:
                 return cls._cache[key]
         return None
-    
+
     @classmethod
     def set(cls, key, value):
         cls._cache[key] = value
         cls._cache_time[key] = time.time()
+
+
+# ============ 首页分页缓存 ============
+class PageCache:
+    """首页分页结果缓存 - 大幅提升首页加载速度"""
+    _cache = {}
+    _time = {}
+    CACHE_TTL = 300  # 5分钟缓存
+
+    @classmethod
+    def get(cls, key):
+        if key in cls._cache:
+            if time.time() - cls._time[key] < cls.CACHE_TTL:
+                return cls._cache[key]
+        return None
+
+    @classmethod
+    def set(cls, key, value):
+        cls._cache[key] = value
+        cls._time[key] = time.time()
+
+    @classmethod
+    def invalidate(cls):
+        """清除所有分页缓存"""
+        cls._cache = {}
+        cls._time = {}
+
+
+# ============ 精灵图URL缓存 ============
+class SpriteURLCache:
+    """精灵图URL缓存 - 启动时预计算，避免重复文件检查"""
+    _urls = {}
+    _checked = False
+
+    @classmethod
+    def init(cls):
+        """初始化时预计算所有精灵图URL"""
+        if cls._checked:
+            return
+        print("🔄 预计算精灵图URL...")
+        start = time.time()
+        pokemons = PokemonDataCache.get_data()
+        for pid in pokemons.keys():
+            sprite_path = os.path.join(SPRITE_DIR, f"{pid}.png")
+            if os.path.exists(sprite_path):
+                cls._urls[pid] = f"/sprite/{pid}.png"
+            else:
+                cls._urls[pid] = f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pid}.png"
+        cls._checked = True
+        print(f"✅ 精灵图URL预计算完成! 耗时: {time.time()-start:.2f}秒")
+
+    @classmethod
+    def get_url(cls, pokemon_id):
+        cls.init()
+        pid = str(pokemon_id)
+        if pid in cls._urls:
+            return cls._urls[pid]
+        # 未知宝可梦，返回默认URL
+        return f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
 
 def fetch_json(url):
     """JSON获取"""
@@ -360,16 +419,18 @@ def download_sprite(pokemon_id):
         return False
 
 def prefetch_sprites(start_id=1, end_id=151):
-    """后台预加载精灵图"""
+    """后台预加载精灵图 - 全部异步，不阻塞启动"""
     print("🔄 开始预加载精灵图...")
-    for pid in range(start_id, min(end_id, 30) + 1):
-        download_sprite(pid)
     
     def background_download():
-        for pid in range(31, end_id + 1):
-            download_sprite(pid)
+        for pid in range(start_id, end_id + 1):
+            try:
+                download_sprite(pid)
+            except:
+                pass
         print("✅ 精灵图预加载完成!")
     
+    # 全部放到后台执行，不阻塞启动
     threading.Thread(target=background_download, daemon=True).start()
 
 def get_sprite_url(pokemon_id):
@@ -682,42 +743,60 @@ STAGE2_POKEMON_IDS = [
 
 @app.route('/')
 def index():
-    """首页 - 宝可梦列表"""
+    """首页 - 宝可梦列表（优化版）"""
     page = request.args.get('page', 1, type=int)
     filter_type = request.args.get('type', '', type=str)
     search_query = request.args.get('q', '', type=str).strip()
-    
+
+    # 生成缓存key（搜索时也需要缓存）
+    cache_key = f"page_{page}_type_{filter_type}_search_{search_query}"
+
+    # 尝试从缓存获取
+    cached_result = PageCache.get(cache_key)
+    if cached_result is not None and not search_query:
+        # 无搜索时使用缓存，有搜索时不缓存（搜索结果可能不同）
+        return render_template('index.html',
+                               pokemons=cached_result['pokemon_list'],
+                               page=cached_result['page'],
+                               total_pages=cached_result['total_pages'],
+                               total_pokemon=cached_result['total_pokemons'],
+                               filter_type=cached_result['filter_type'],
+                               type_colors=TYPE_COLORS,
+                               type_names=TYPE_NAMES_CN,
+                               search_query=cached_result['search_query'],
+                               search_results_count=cached_result['search_results_count'])
+
     pokemons = PokemonDataCache.get_data()
     sorted_ids = PokemonDataCache.get_sorted_ids()
-    
+
     # 搜索功能（支持ID、中文名、英文名模糊匹配）
     if search_query:
         search_query_lower = search_query.lower()
         # 判断是否是数字（ID搜索）
         is_numeric = search_query.isdigit()
-        
-        sorted_ids = [pid for pid in sorted_ids 
-                     if (search_query_lower in pokemons[pid]['name'].lower()) or 
+
+        sorted_ids = [pid for pid in sorted_ids
+                     if (search_query_lower in pokemons[pid]['name'].lower()) or
                         (get_cn_name(pid) and search_query_lower in get_cn_name(pid).lower()) or
                         (is_numeric and pid == search_query)]
-    
+
     # 类型筛选
     if filter_type:
-        sorted_ids = [pid for pid in sorted_ids 
+        sorted_ids = [pid for pid in sorted_ids
                       if filter_type.lower() in [t.lower() for t in pokemons[pid].get('type', [])]]
-    
+
     # 记录搜索结果数量
     search_results_count = len(sorted_ids) if search_query else None
-    
+
     # 分页
     total_pokemons = len(sorted_ids)
     total_pages = (total_pokemons + POKEMONS_PER_PAGE - 1) // POKEMONS_PER_PAGE if total_pokemons > 0 else 1
-    
+
     start_idx = (page - 1) * POKEMONS_PER_PAGE
     end_idx = min(start_idx + POKEMONS_PER_PAGE, total_pokemons)
     page_ids = sorted_ids[start_idx:end_idx]
-    
-    # 构建页面数据
+
+    # 构建页面数据 - 使用缓存的精灵图URL
     pokemon_list = []
     for pid in page_ids:
         p = pokemons[pid]
@@ -727,9 +806,21 @@ def index():
             'cn_name': get_cn_name(pid),
             'types': p['type'],
             'cn_types': get_cn_types(p['type']),
-            'sprite_url': get_sprite_url(int(pid))
+            'sprite_url': SpriteURLCache.get_url(int(pid))
         })
-    
+
+    # 缓存无搜索的分页结果
+    if not search_query:
+        PageCache.set(cache_key, {
+            'pokemon_list': pokemon_list,
+            'page': page,
+            'total_pages': total_pages,
+            'total_pokemons': total_pokemons,
+            'filter_type': filter_type,
+            'search_query': search_query,
+            'search_results_count': search_results_count
+        })
+
     return render_template('index.html',
                            pokemons=pokemon_list,
                            page=page,
@@ -1119,6 +1210,9 @@ if __name__ == '__main__':
     
     # 预加载数据
     PokemonDataCache.load()
+    
+    # 预计算精灵图URL（启动时完成，避免首次访问延迟）
+    SpriteURLCache.init()
     
     # 后台预加载精灵图
     prefetch_sprites()

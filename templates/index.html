@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>宝可梦图鉴</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
     <style>
         * {
             margin: 0;
@@ -1096,9 +1097,9 @@
         
         <div class="pokemon-grid">
             {% for pokemon in pokemons %}
-            <a href="/pokemon/{{ pokemon.id }}?from_page={{ page }}&from_type={{ filter_type or '' }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.02 + 2.6 }}s">
+            <a href="/pokemon/{{ pokemon.id }}?from_page={{ page }}&from_type={{ filter_type or '' }}" class="pokemon-card" style="animation-delay: {{ loop.index0 * 0.01 + 0.1 }}s">
                 <div class="pokemon-number">#{{ "%03d"|format(pokemon.id) }}</div>
-                <img src="{{ pokemon.sprite_url }}" alt="{{ pokemon.name }}" class="pokemon-image">
+                <img src="{{ pokemon.sprite_url }}" loading="lazy" alt="{{ pokemon.name }}" class="pokemon-image">
                 <div class="pokemon-name">{{ pokemon.name }}</div>
                 <div class="pokemon-cn-name">{{ pokemon.cn_name or '' }}</div>
                 <div class="types">
