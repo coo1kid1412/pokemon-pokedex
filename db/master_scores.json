@@ -1,5 +1,5 @@
 {
-  "total_success": 63,
+  "total_success": 64,
   "records": [
     {
       "timestamp": "2026-03-08T22:59:03.293006",
@@ -378,6 +378,12 @@
       "pokemon_id": 139,
       "pokemon_name": "多刺菊石兽",
       "success": true
+    },
+    {
+      "timestamp": "2026-03-15T13:37:45.308870",
+      "pokemon_id": 138,
+      "pokemon_name": "菊石兽",
+      "success": true
     }
   ],
   "daily_records": {
@@ -398,8 +404,8 @@
       "total": 5
     },
     "2026-03-15": {
-      "success": 12,
-      "total": 12
+      "success": 13,
+      "total": 13
     }
   }
 }
