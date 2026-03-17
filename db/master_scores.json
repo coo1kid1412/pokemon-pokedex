@@ -1,9 +1,9 @@
 {
-  "total_success": 3,
+  "total_success": 24,
   "daily_records": {
     "2026-03-15": {
-      "success": 3,
-      "total": 3
+      "success": 24,
+      "total": 24
     }
   },
   "records": [
@@ -23,6 +23,132 @@
       "timestamp": "2026-03-15T14:54:54.158728",
       "pokemon_id": 809,
       "pokemon_name": "美录梅塔",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:56:01.424607",
+      "pokemon_id": 89,
+      "pokemon_name": "臭臭泥",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:56:16.972492",
+      "pokemon_id": 55,
+      "pokemon_name": "哥达鸭",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:56:37.110834",
+      "pokemon_id": 95,
+      "pokemon_name": "大岩蛇",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:56:59.032906",
+      "pokemon_id": 79,
+      "pokemon_name": "呆呆兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:57:24.273255",
+      "pokemon_id": 134,
+      "pokemon_name": "水伊布",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:58:24.193147",
+      "pokemon_id": 110,
+      "pokemon_name": "双弹瓦斯",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:59:13.579055",
+      "pokemon_id": 109,
+      "pokemon_name": "瓦斯弹",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T14:59:52.241140",
+      "pokemon_id": 809,
+      "pokemon_name": "美录梅塔",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T15:00:21.678881",
+      "pokemon_id": 59,
+      "pokemon_name": "风速狗",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:13:08.510520",
+      "pokemon_id": 71,
+      "pokemon_name": "大食花",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:13:51.709881",
+      "pokemon_id": 118,
+      "pokemon_name": "角金鱼",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:15:07.367924",
+      "pokemon_id": 124,
+      "pokemon_name": "迷唇姐",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:15:49.960640",
+      "pokemon_id": 86,
+      "pokemon_name": "小海狮",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:16:14.067856",
+      "pokemon_id": 2,
+      "pokemon_name": "妙蛙草",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:17:02.412602",
+      "pokemon_id": 136,
+      "pokemon_name": "火伊布",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:18:08.722059",
+      "pokemon_id": 125,
+      "pokemon_name": "电击兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:20:40.728452",
+      "pokemon_id": 112,
+      "pokemon_name": "钻角犀兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:21:07.543535",
+      "pokemon_id": 133,
+      "pokemon_name": "伊布",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:23:17.197433",
+      "pokemon_id": 143,
+      "pokemon_name": "卡比兽",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:23:38.308317",
+      "pokemon_id": 82,
+      "pokemon_name": "三合一磁怪",
+      "success": true
+    },
+    {
+      "timestamp": "2026-03-15T21:24:39.586734",
+      "pokemon_id": 105,
+      "pokemon_name": "嘎啦嘎啦",
       "success": true
     }
   ]
