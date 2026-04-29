@@ -21,23 +21,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, request, send_from_directory, abort, make_response, jsonify
 
 # 导入中文名称 - 使用完整的1008个中文名称
-import sys
-sys.path.insert(0, '/Users/lailixiang/.openclaw/workspace/pokemon')
-try:
-    from pokemon_names_cn_full import POKEMON_NAMES_CN
-except ImportError:
-    from pokemon_cn import POKEMON_NAMES_CN
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 
 # 配置
-POKEMON_DB_PATH = '/Users/lailixiang/.openclaw/workspace/pokemon/db/pokemons.json'
+POKEMON_DB_PATH = os.path.join(_BASE_DIR, 'db', 'pokemons.json')
 POKEMONS_PER_PAGE = 30
-SPRITE_DIR = '/Users/lailixiang/.openclaw/workspace/scripts/static/sprites'
+SPRITE_DIR = os.path.join(_BASE_DIR, 'static', 'sprites')
 SPRITE_URL_BASE = '/static/sprites'
 
 # 名称语音 TTS 配置
-TTS_DIR = '/Users/lailixiang/.openclaw/workspace/scripts/static/tts'
+TTS_DIR = os.path.join(_BASE_DIR, 'static', 'tts')
 TTS_URL_BASE = '/static/tts'
 
 # 线程池用于并发API请求
@@ -1145,10 +1140,10 @@ def random_explore():
     return jsonify({'pokemon_id': random_id})
 
 # ============ 大师赛榜单 API ============
-MASTER_SCORES_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_scores.json'
+MASTER_SCORES_FILE = os.path.join(_BASE_DIR, 'db', 'master_scores.json')
 
 # ============ 大师赛挑战统计文件 ============
-MASTER_CHALLENGE_STATS_FILE = '/Users/lailixiang/.openclaw/workspace/pokemon/db/master_challenge_stats.json'
+MASTER_CHALLENGE_STATS_FILE = os.path.join(_BASE_DIR, 'db', 'master_challenge_stats.json')
 
 def load_challenge_stats():
     """加载挑战统计数据"""

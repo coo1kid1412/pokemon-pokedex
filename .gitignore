@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Flask
+instance/
+.webassets-cache
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 测试
+.pytest_cache/
+
+# 动态数据文件（运行时生成）
+db/master_scores.json
+db/master_challenge_stats.json
+
+# 日志
+*.log
